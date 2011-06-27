@@ -11,11 +11,23 @@ eventCompileEnd = { binding ->
                     coffeeCompilerLocation = 'coffee'
                 }
             }
-            coffeeSrcDir.eachFileMatch(~/.*\.coffee/) { coffeeFile ->
-                proc = "${coffeeCompilerLocation} -c -o ${resourcesDirPath}/js/coffeescriptGenerated ${coffeeFile.absolutePath}".execute()
+
+            def compileCoffee = { coffeeFile ->
+                def dir = coffeeFile.parent.replace(coffeeSrcDir.path,"")
+                new File(resourcesDirPath, "js/coffeescriptGenerated${dir}").mkdirs()
+
+                event 'StatusUpdate', ["Compiling CoffeeScript ${dir}${coffeeFile.name}"]
+                proc = "${coffeeCompilerLocation} -c -o ${resourcesDirPath}/js/coffeescriptGenerated${dir} ${coffeeFile.absolutePath}".execute()
                 proc.in.eachLine { println it}
                 proc.err.eachLine { System.err.println(it) }
             }
+
+            coffeeSrcDir.eachFileRecurse {
+              if(it.toString().matches(~/.*\.coffee/)) {
+                compileCoffee(it)
+              }
+            }
+
             event 'StatusUpdate', ['Finished Compiling CoffeeScript Files']
             event 'CoffeeScriptCompileEnd', [ 'Starting to compile CoffeeScript Files']
         }

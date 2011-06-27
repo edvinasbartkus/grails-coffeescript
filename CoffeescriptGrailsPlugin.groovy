@@ -13,9 +13,8 @@ class CoffeescriptGrailsPlugin {
             "grails-app/views/demo/*",
             "src/coffee/**"
     ]
-    def watchedResources = "file:./src/coffee/*.coffee"
+    def watchedResources = [ "file:./src/coffee/*.coffee", "file:./src/coffee/**/*.coffee",  ]
 
-    // TODO Fill in these fields
     def author = "Jeff Brown"
     def authorEmail = ""
     def title = "CoffeeScript Plugin For Grails"
@@ -40,7 +39,11 @@ The CoffeeScript plugin for Grails provides CoffeeScript integration.
                         coffeeCompilerLocation = 'coffee'
                     }
                 }
-                def proc = "${coffeeCompilerLocation} -c -o ${resourcesDir}/js/coffeescriptGenerated/ ${source.file.absolutePath}".execute()
+                def dir = source.file.parent.replace(new File(grailsSettings.baseDir, "src/coffee").toString(), "")
+                new File(resourcesDir.path, "js/coffeescriptGenerated${dir}").mkdirs()
+
+                def proc = "${coffeeCompilerLocation} -c -o ${resourcesDir}/js/coffeescriptGenerated/${dir} ${source.file.absolutePath}".execute()
+                println source.file.absolutePath
                 proc.in.eachLine { println it}
                 proc.err.eachLine { System.err.println(it) }
             } catch (e) {
